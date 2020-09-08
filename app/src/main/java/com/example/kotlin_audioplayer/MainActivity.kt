@@ -5,13 +5,14 @@ import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,7 +29,6 @@ class MainActivity : AppCompatActivity() {
         if(hasPermission) showAppFragment()
         else {
             requestPerm()
-
         }
     }
 
@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
 
             builder.apply {
                 setMessage("le fonctionnement optimale de l'application nécessite votre permission")
-                setPositiveButton("Ok") { dialog, id ->
+                setPositiveButton("Ok") { _, _ ->
                     requestPerm()
                 }
             }
@@ -108,4 +108,5 @@ class MainActivity : AppCompatActivity() {
             return dialog
         }
     }
+
 }

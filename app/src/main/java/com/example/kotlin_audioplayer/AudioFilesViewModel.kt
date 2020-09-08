@@ -1,4 +1,8 @@
 package com.example.kotlin_audioplayer
 
-class AudioFilesViewModel {
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+class AudioFilesViewModel: ViewModel(){
+    val audioFiles = MutableLiveData<List<AudioFile>>(listOf())
 }

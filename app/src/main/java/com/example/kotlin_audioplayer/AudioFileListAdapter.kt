@@ -4,13 +4,15 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kotlin_audioplayer.databinding.AudioFileItemBinding
 
 class AudioFileListAdapter(
-    private val fileList: List<AudioFile>,
     private val lifecycleOwner: LifecycleOwner
-): RecyclerView.Adapter<AudioFileListAdapter.ViewHolder>() {
+    ): ListAdapter<AudioFile, AudioFileListAdapter.ViewHolder>(
+        AudioFile.DIFF_CB
+    ) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -26,10 +28,10 @@ class AudioFileListAdapter(
         holder: ViewHolder,
         position: Int
     ) {
-        val file = fileList[position]
+        val file = currentList[position]
         holder.bind(file)
     }
-    override fun getItemCount(): Int = fileList.size
+
     inner class ViewHolder(
         binding: AudioFileItemBinding) : RecyclerView.ViewHolder(binding.root) {
             private val viewModel = MutableLiveData<AudioFile>()

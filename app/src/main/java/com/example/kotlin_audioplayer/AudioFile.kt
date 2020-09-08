@@ -1,13 +1,14 @@
 package com.example.kotlin_audioplayer
 
 import android.net.Uri
+import androidx.recyclerview.widget.DiffUtil
 import java.util.*
 
 data class AudioFile (
-    val id: Long = 1,
-    val title: String = "titre1",
-    val artist: String = "artiste1",
-    val album: String = "album1",
+    val id: Long,
+    val title: String,
+    val artist: String,
+    val album: String,
     val duration: Int = 1337,
     val filePath: Uri = Uri.EMPTY
 ) {
@@ -21,5 +22,18 @@ data class AudioFile (
             return if(h > 0) "%02d:%02d:%02d".format(l, h, m, s)
             else "%02d:%02d".format(l, m, s)
         }
+    companion object {
+        val DIFF_CB = object : DiffUtil.ItemCallback<AudioFile>() {
+            override fun areItemsTheSame(
+                oldItem: AudioFile,
+                newItem: AudioFile
+            ): Boolean = oldItem.id == newItem.id
+
+            override fun areContentsTheSame(
+                oldItem: AudioFile,
+                newItem: AudioFile
+            ): Boolean = oldItem == newItem
+        }
+    }
 }
 
