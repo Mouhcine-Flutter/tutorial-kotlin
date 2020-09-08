@@ -16,8 +16,9 @@ class AudioFileListFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val fakeList = listOf(
-            AudioFile(1, "titre1","artiste1","album1"),
-            AudioFile(2, "titre2","artiste2","album2")
+            AudioFile(1, "Rising Force","Malmsteen","ODYSSEY", duration = 185),
+            AudioFile(2, "Hold On","Malmsteen","ODYSSEY", 260),
+            AudioFile(3, "Heaven Tonight","Malmsteen","ODYSSEY", 190)
         )
         val binding = FragmentAudioFileListBinding.inflate(
             inflater,
