@@ -22,22 +22,17 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
-class AudioFileListFragment: Fragment() {
+class AudioFileListFragment : Fragment() {
     private val viewModel by
     activityViewModels<AudioFilesViewModel>()
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        viewModel.audioFiles.postValue(
-            listOf(
-                AudioFile(1, "Rising Force","Malmsteen","ODYSSEY", 185),
-                AudioFile(2, "Hold On","Malmsteen","ODYSSEY", 260),
-                AudioFile(3, "Heaven Tonight","Malmsteen","ODYSSEY", 190)
-            )
-        )
+        querySongs()
         val binding = FragmentAudioFileListBinding.inflate(
             inflater,
             container,
@@ -66,44 +61,38 @@ class AudioFileListFragment: Fragment() {
             MediaStore.Audio.Media.DURATION
         )
 
-        val query = Application().contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+        val c = requireActivity().contentResolver.query(
+            uri,
             projection,
             null,
             null,
             null
         )
-        query?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val titleColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val artistColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val albumColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                val durationColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+        c?.use { cursor ->
+            val columnIdx = cursor
+                .getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val titleIdx = cursor
+                .getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistIdx = cursor
+                .getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumIdx = cursor
+                .getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val durationIdx = cursor
+                .getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
-                val thisId: Long = cursor.getLong(idColumn)
-                val contentUri: Uri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    thisId
-                )
-                do {
-                    val thisId: Long = cursor.getLong(idColumn)
-                    val thisTitle: String = cursor.getString(titleColumn)
-                    val thisArtist: String = cursor.getString(artistColumn)
-                    val thisAlbum: String = cursor.getString(albumColumn)
-                    val thisDuration: Int = cursor.getInt(durationColumn)
-                    audioList.add(
-                        AudioFile(thisId, thisTitle, thisArtist, thisAlbum, thisDuration)
-                    )
-                } while (cursor.moveToNext())
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(columnIdx)
+                val title = cursor.getString(titleIdx)
+                val artist = cursor.getString(artistIdx)
+                val album = cursor.getString(albumIdx)
+                val duration = cursor.getInt(durationIdx)
+
+                val uri: Uri = ContentUris.withAppendedId(uri, id)
+                audioList.add(AudioFile(id, title, artist, album, duration, uri))
             }
-            cursor.close()
-            val adapter = AudioFileListAdapter(viewLifecycleOwner)
-            adapter.notifyDataSetChanged()
+            viewModel.audioFiles.postValue(
+                audioList
+            )
         }
     }
 }

@@ -26,7 +26,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if(hasPermission) showAppFragment()
+        if(hasPermission)
+            showAppFragment()
         else {
             requestPerm()
         }
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestPerm() = ActivityCompat.requestPermissions(
         this,
         arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-        0
+        1
     )
     override fun onResume() {
         super.onResume()
