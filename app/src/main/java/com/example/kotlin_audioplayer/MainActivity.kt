@@ -2,20 +2,34 @@ package com.example.kotlin_audioplayer
 
 import android.Manifest
 import android.app.Dialog
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
+import java.util.concurrent.atomic.AtomicReference
 
 
 class MainActivity : AppCompatActivity() {
 
+    private val viewModel: AudioFilesViewModel
+        get() {
+           return ViewModelProvider(this)[AudioFilesViewModel::class.java]
+        }
+    val player by lazy {
+        PlayerServiceWrapper(this, viewModel, actualService)
+    }
+    private var actualService: AtomicReference<PlayerService?> = AtomicReference(null)
     private val dialog = AskPermissionsDialog(::requestPerm)
     private val hasPermission
         get() = ContextCompat.checkSelfPermission(
@@ -25,8 +39,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        bindService(
+            Intent(this, PlayerService::class.java),
+            PlayerServiceConnection(),
+            Context.BIND_AUTO_CREATE
+        )
         setContentView(R.layout.activity_main)
-        if(hasPermission)
+        if (hasPermission)
             showAppFragment()
         else {
             requestPerm()
@@ -46,13 +66,15 @@ class MainActivity : AppCompatActivity() {
         arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
         1
     )
+
     override fun onResume() {
         super.onResume()
         val currentFragment = supportFragmentManager
             .findFragmentById(R.id.fragment_container)
-        if(currentFragment !is AudioFileListFragment && hasPermission)
+        if (currentFragment !is AudioFileListFragment && hasPermission)
             showAppFragment()
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -65,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             PackageManager.PERMISSION_DENIED
         }
         // Si nous avons la permission, nous affichons l'application
-        if(result == PackageManager.PERMISSION_GRANTED) {
+        if (result == PackageManager.PERMISSION_GRANTED) {
             showAppFragment()
         }
         // Sinon, si le système nous indique que nous
@@ -76,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                     this,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
-            if(showRequestRationnale) {
+            if (showRequestRationnale) {
                 dialog.show(
                     supportFragmentManager,
                     AskPermissionsDialog::class.simpleName
@@ -93,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
     class AskPermissionsDialog(
         private val requestPerm: () -> Unit
-    ): DialogFragment() {
+    ) : DialogFragment() {
         override fun onCreateDialog(
             savedInstanceState: Bundle?
         ): Dialog {
@@ -108,6 +130,17 @@ class MainActivity : AppCompatActivity() {
             val dialog: AlertDialog = builder.create()
             return dialog
         }
+    }
+
+    inner class PlayerServiceConnection : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) = actualService.set(
+            (service as? PlayerService.Binder)?.service
+        )
+
+        override fun onServiceDisconnected(name: ComponentName?) = actualService.set(null)
     }
 
 }
